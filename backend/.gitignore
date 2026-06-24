@@ -1,0 +1,12 @@
+# Ignore local environment variables
+.env
+
+# Ignore the local SQLite database file
+lifesaver.db
+
+# Ignore Python caching and virtual environments
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env/

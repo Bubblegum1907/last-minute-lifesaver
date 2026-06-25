@@ -79,10 +79,16 @@ class GeminiService(BaseAIService):
         json_data = json.loads(text)
         return AutomatedTaskBreakdown.model_validate(json_data)
 
-    async def chat(self, message: str) -> str:
+    async def chat(self, message: str, history: list = []) -> str:
+        contents = []
+        for msg in history:
+            role = "user" if msg.role == "user" else "model"
+            contents.append({"role": role, "parts": [{"text": msg.content}]})
+        contents.append({"role": "user", "parts": [{"text": message}]})
+
         response = self.client.models.generate_content(
             model=self.model_name,
-            contents=message,
+            contents=contents,
             config={"system_instruction": SYSTEM_PROMPT, "temperature": 0.7}
         )
         return response.text

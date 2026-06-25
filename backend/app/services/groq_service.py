@@ -77,13 +77,15 @@ class GroqService(BaseAIService):
         json_data = json.loads(response.choices[0].message.content)
         return AutomatedTaskBreakdown.model_validate(json_data)
 
-    async def chat(self, message: str) -> str:
+    async def chat(self, message: str, history: list = []) -> str:
+        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+        for msg in history:
+            messages.append({"role": msg.role, "content": msg.content})
+        messages.append({"role": "user", "content": message})
+
         response = self.client.chat.completions.create(
             model=self.model_name,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": message}
-            ],
+            messages=messages,
             temperature=0.7
         )
         return response.choices[0].message.content

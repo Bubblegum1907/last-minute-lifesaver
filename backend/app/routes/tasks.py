@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 from app.database import get_db
@@ -23,6 +23,12 @@ class BreakdownRequest(BaseModel):
     answers: str
 
 
+class ManualTaskCreate(BaseModel):
+    title: str
+    energy_level: str = "medium"
+    deadline: Optional[str] = None
+
+
 @router.post("/clarify")
 async def clarify_task(payload: RawDumpRequest):
     """Step 1: AI returns clarifying questions about the task."""
@@ -32,6 +38,18 @@ async def clarify_task(payload: RawDumpRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI processing error: {str(e)}")
 
+@router.post("/manual", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
+def create_manual_task(payload: ManualTaskCreate, db: Session = Depends(get_db)):
+    new_task = Task(
+        title=payload.title,
+        deadline=datetime.fromisoformat(payload.deadline) if payload.deadline else None,
+        energy_level=payload.energy_level,
+        status="pending"
+    )
+    db.add(new_task)
+    db.commit()
+    db.refresh(new_task)
+    return new_task
 
 @router.post("/ai-breakdown", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 async def create_ai_task(payload: BreakdownRequest, db: Session = Depends(get_db)):
@@ -91,6 +109,7 @@ def update_task_status(task_id: int, payload: TaskStatusUpdate, db: Session = De
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     task.status = payload.status
+    task.completed_at = datetime.utcnow() if payload.status == 'completed' else None
     db.commit()
     db.refresh(task)
     return task

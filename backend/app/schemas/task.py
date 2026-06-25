@@ -30,6 +30,7 @@ class TaskResponse(TaskBase):
     id: int
     status: str
     created_at: datetime
+    completed_at: Optional[datetime] = None
     micro_steps: List[MicroStepResponse] = []
 
     class Config:

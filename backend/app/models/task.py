@@ -12,6 +12,7 @@ class Task(Base):
     energy_level = Column(String, default="medium")
     status = Column(String, default="pending")
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
 
     # Relationship to link subtasks
     micro_steps = relationship("MicroStep", back_populates="parent_task", cascade="all, delete-orphan")

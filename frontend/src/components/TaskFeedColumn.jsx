@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { toggleMicroStep, toggleTaskStatus, deleteTask } from '../services/api'
-import SnakeGame from './SnakeGame'
+import SnakeGame from './Snakegame'
 
 const BASE = 'http://localhost:8000'
 
